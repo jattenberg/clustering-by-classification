@@ -100,3 +100,6 @@ virt/
 
 # mypy
 .mypy_cache/
+
+
+*~
