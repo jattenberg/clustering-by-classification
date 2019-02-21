@@ -3,7 +3,7 @@ from sklearn.base import BaseEstimator, ClusterMixin, TransformerMixin
 
 class ClusterByClassifier(BaseEstimator, ClusterMixin, TransformerMixin):
     
-    def __init__(self, clf, n_clusters=8, max_iters=30000, thresh=0.00001):
+    def __init__(self, clf, n_clusters=8, max_iters=500, thresh=0.00001):
         self.n_clusters = n_clusters
         self.clf = clf
         self.max_iters = max_iters
@@ -16,6 +16,7 @@ class ClusterByClassifier(BaseEstimator, ClusterMixin, TransformerMixin):
         
         def train_rec(y, ct=0):
             y_hat = train_and_predict(y)
+            # absolute magnitude
             if ct >= self.max_iters or np.linalg.norm(y-y_hat) <= self.thresh:
                 return y_hat
             else:
