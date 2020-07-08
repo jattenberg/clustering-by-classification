@@ -17,9 +17,9 @@ required_libraries=[
 ]
 
 setup(
-    name="clustering-by-classification",
+    name="clustering_by_classification",
     version="0.1.0",
     description="using arbitrary classifiers to cluster data",
-    url="https://github.com/jattenberg/clustering-by-classification",
+    url="https://github.com/jattenberg/clustering_by_classification",
     install_requires=required_libraries
 )
