@@ -20,7 +20,7 @@ class ClusterByClassifier(BaseEstimator, ClusterMixin, TransformerMixin):
                  n_clusters=8,
                  max_iters=500,
                  thresh=0.00001,
-                 initializer="random",
+                 initializer="modelmkpp",
                  soft_clustering=True):
         self.n_clusters = n_clusters
         self.clf = clf
@@ -36,16 +36,59 @@ class ClusterByClassifier(BaseEstimator, ClusterMixin, TransformerMixin):
         def _kmeans(X):
             return KMeans(n_clusters=self.n_clusters).fit_predict(X)
 
+        def _modelmkpp(X):
+
+            y = np.zeros(X.shape[0])
+            first = np.random.randint(10)
+            seen = [first]
+
+            second = np.random.randint(10)
+            while second in seen:
+                second = np.random.randint(10)
+
+            seen.append(second)
+
+            for idx in range(len(seen)):
+                y[seen[idx]] = idx + 1
+                        
+            self.clf.fit(X, y)
+
+            while len(seen) < self.n_clusters - 1:
+                # 1. compute probas for examples
+                probas = self.clf.predict_proba(X)
+                # 2. find the max proba for each example
+                dists = np.max(1.0 - probas, axis=1)
+                # 3. sample based on thiese dists
+                nxt_pt = np.random.choice(X.shape[0], p=dists/np.sum(dists))
+
+                while nxt_pt in seen:
+                    nxt_pt = np.random.choice(X.shape[0], p=dists/np.sum(dists))
+
+                # 4. retrain model and recurse :) 
+                seen.append(nxt_pt)
+                for idx in range(len(seen)):
+                    y[seen[idx]] = idx + 1
+                        
+                self.clf.fit(X, y)
+
+            # todo: soft-clustering version
+            return self.clf.predict(X)
+
         logging.info("initializing with %s" % self.initializer)
         return {
             "random": _random,
-            "kmeans": _kmeans
+            "kmeans": _kmeans,
+            "modelmkpp": _modelmkpp,
             }[self.initializer](X)
         
     def fit_predict(self, X, y=None):
         def train_and_predict(y):
             self.clf.fit(X, y)
-            return np.array([np.random.choice(self.n_clusters, p=x) for x in self.clf.predict_proba(X)])
+            
+            if self.soft_clustering:
+                return np.array([np.random.choice(self.n_clusters, p=x) for x in self.clf.predict_proba(X)])
+            else:
+                return self.clf.predict(X)
         
         def train_rec(y, ct=0):
             logging.info("on iteration %d" % ct)
