@@ -1,5 +1,5 @@
 # clustering-by-classification
-can we cluster using an arbitrary classifier? I think so. \
+can we cluster using an arbitrary classifier? I think so.
 
 # Update 7-9-2020
 finally got the chance to test some ideas on this. So far it seems that initial conditions are clearly the dominating force in determining the quality of the clustering outcome, at least according to my visual inspection. I've tried a number of approaches. of note:
