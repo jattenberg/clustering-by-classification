@@ -3,8 +3,11 @@ import numpy as np
 from enum import Enum
 from annoy import AnnoyIndex
 from scipy.special import softmax
+from sklearn.metrics import accuracy_score
 from sklearn.base import BaseEstimator, ClusterMixin, TransformerMixin
 from sklearn.cluster import KMeans
+from sklearn.model_selection import cross_val_score
+from operator import  itemgetter
 
 class initializer(Enum):
     """
@@ -24,7 +27,11 @@ class ClusterByClassifier(BaseEstimator, ClusterMixin, TransformerMixin):
                  thresh=0.00001,
                  initializer="modelmkpp",
                  soft_clustering=True,
-                 neighbor_selection='balanced'):
+                 neighbor_selection='balanced',
+                 retries=5,
+                 scoring='accuracy',
+                 folds=5,
+                 n_jobs=1):
         self.n_clusters = n_clusters
         self.clf = clf
         self.max_iters = max_iters
@@ -32,6 +39,10 @@ class ClusterByClassifier(BaseEstimator, ClusterMixin, TransformerMixin):
         self.initializer = initializer
         self.soft_clustering = soft_clustering
         self.neighbor_selection = neighbor_selection
+        self.retries = retries
+        self.scoring = scoring
+        self.folds = folds
+        self.n_jobs = n_jobs
 
     def _initialize(self, X):
         def _get_num_neighbors():
@@ -102,6 +113,31 @@ class ClusterByClassifier(BaseEstimator, ClusterMixin, TransformerMixin):
 
             logging.info("building an index with %d items" % X.shape[0])
             idx.build(50)
+
+            tries = []
+            
+            for trial in range(self.retries):
+                y = _modelmkpp_inner(X, idx)
+                self.clf.fit(X, y)
+
+                scores = cross_val_score(self.clf,
+                                        X,
+                                        y,
+                                        scoring=self.scoring,
+                                        cv=self.folds,
+                                        n_jobs=self.n_jbos)
+                score = np.average(scores)
+                logging.info("try: %d, score %0.3f" % (trial, score))
+                tries.append({
+                    "y" : y,
+                    "score" : score
+                })
+
+            best = sorted(tries, key=itemgetter('score'))[-1]
+            logging.info("best score: %0.3f" % best['score'])
+            return best['y']
+            
+        def _modelmkpp_inner(X, idx):
 
             label = 1
             first = np.random.randint(X.shape[0])
