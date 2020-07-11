@@ -125,7 +125,7 @@ class ClusterByClassifier(BaseEstimator, ClusterMixin, TransformerMixin):
                                         y,
                                         scoring=self.scoring,
                                         cv=self.folds,
-                                        n_jobs=self.n_jbos)
+                                        n_jobs=self.n_jobs)
                 score = np.average(scores)
                 logging.info("try: %d, score %0.3f" % (trial, score))
                 tries.append({
