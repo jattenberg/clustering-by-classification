@@ -10,6 +10,8 @@ finally got the chance to test some ideas on this. So far it seems that initial 
 # Update 7-10-2020
 model-driven initialization using multiple random retries. pick the option with the best cross-validated score (is best the right thing here?) Seems to work well. 
 
+[Toy Clustering Example](docs/cbc_example.png)
+
 # Next step:
 - Will the initialization alone work well? E.G. do we need the EM steps at all? 
 - Experiment with different kinds of soft assignment, hard assignment
